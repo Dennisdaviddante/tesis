@@ -5,6 +5,8 @@
 
 const { response, request } = require('express');
 const Student = require('../models/student');
+const SuicideAssessment = require('../models/suicideAssessment');
+
 
 /**
  * Crear un nuevo estudiante
@@ -73,6 +75,54 @@ const createStudent = async (req = request, res = response) => {
  * Obtener lista de estudiantes
  * Los psicólogos solo ven sus estudiantes asignados
  */
+
+/**
+ * Obtener lista de estudiantes y ver si la evaluacion esta realizada
+ * Los psicólogos solo ven sus estudiantes asignados
+ */
+const getStudentsWithAssessment = async (req = request, res = response) => {
+    const psychologistId = req.params.id;
+
+    try {
+        // Buscar todos los estudiantes asignados a este psicólogo
+        const students = await Student.find({ assignedPsychologist: psychologistId, status: true,  });
+
+        // Buscar evaluaciones realizadas por el mismo psicólogo
+        const assessments = await SuicideAssessment.find({ psychologist: psychologistId });
+
+        // Map para contar evaluaciones por estudiante
+        const assessmentCountMap = {};
+        assessments.forEach(a => {
+            const studentId = a.student.toString();
+            assessmentCountMap[studentId] = (assessmentCountMap[studentId] || 0) + 1;
+        });
+
+        // Mapear estudiantes agregando "hasAssessment" y "evaluationCount"
+        const studentList = students.map(student => {
+            const studentIdStr = student._id.toString();
+            const count = assessmentCountMap[studentIdStr] || 0;
+
+            return {
+                _id: student._id,
+                fullName: `${student.firstName} ${student.lastName}`,
+                email: student.email,
+                career: student.career,
+                level: student.level,
+                hasAssessment: count > 0,
+                evaluationCount: count,
+                createdAt: student.createdAt
+            };
+        });
+
+        res.json({ ok: true, students: studentList });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ ok: false, msg: 'Error al obtener estudiantes con evaluaciones' });
+    }
+};
+
+
 const getStudents = async (req = request, res = response) => {
     try {
         console.log('Usuario solicitando estudiantes:', {
@@ -518,5 +568,6 @@ module.exports = {
     addClinicalNote,
     updateClinicalNote,
     deleteClinicalNote,
-    getStudentById
+    getStudentById,
+    getStudentsWithAssessment
 };

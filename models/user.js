@@ -18,8 +18,13 @@ const UserSchema = Schema({
         type: String,
         required: [true, 'El password es obligatorio'],
     },
-    img:{
+    img:{ // Imagen de perfil
         type: String,
+        default: ''
+    },
+    coverImage: { // Imagen de portada
+        type: String,
+        default: ''
     },
     role:{
         type: String, 
@@ -42,4 +47,5 @@ UserSchema.methods.toJSON = function(){
     user.name = `${this.firstName} ${this.lastName}`; 
     return user;
 }
+
 module.exports = model('User', UserSchema);

@@ -9,6 +9,39 @@ const RISK_LEVELS = {
     HIGH: 'Alto'
 };
 
+const updateFinalRemarks = async (req, res = response) => {
+    const { id } = req.params;
+    const { finalRemarks } = req.body;
+
+    try {
+        const assessment = await SuicideAssessment.findByIdAndUpdate(
+            id,
+            { finalRemarks },
+            { new: true }
+        )
+        .populate('student')
+        .populate('psychologist', 'firstName lastName');
+
+        if (!assessment) {
+            return res.status(404).json({
+                ok: false,
+                msg: 'Evaluación no encontrada'
+            });
+        }
+
+        res.json({
+            ok: true,
+            assessment
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            ok: false,
+            msg: 'Error al actualizar observaciones'
+        });
+    }
+};
+
 const createAssessment = async (req, res = response) => {
     try {
         const { studentId, ...assessmentData } = req.body;
@@ -223,5 +256,6 @@ module.exports = {
     createAssessment,
     getAssessments,
     getAssessmentById,
-    getStatistics
+    getStatistics,
+    updateFinalRemarks 
 };

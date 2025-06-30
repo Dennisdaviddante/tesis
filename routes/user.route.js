@@ -6,10 +6,11 @@
 const { Router } = require('express');
 const { check } = require('express-validator');
 const User = require('../models/user');
-const { userget, userpost, userdelete, userput, getAdmin } = require('../controllers/user.controller.js');
+const { userget, userpost, userdelete, userput, getAdmin, uploadImages, } = require('../controllers/user.controller.js');
 const { validateFields } = require('../middlewares/validate-fields');
 const { esRoleValid, esEmailValid } = require('../helpers/db-validator');
 const { validateJWT } = require('../middlewares/vlaidate-jwt.js');
+const upload = require('../middlewares/upload.files.js');
 
 const router = Router();
 
@@ -105,6 +106,17 @@ router.put('/:id', [
     check('password', 'La contraseña debe tener al menos 6 caracteres').optional().isLength({ min: 6 }),
     validateFields
 ], userput)
+router.put(
+    '/upload/:id',
+    [
+        validateJWT,
+        upload.fields([
+            { name: 'profileImage', maxCount: 1 },
+            { name: 'coverImage', maxCount: 1 }
+        ])
+    ],
+    uploadImages
+);
 
 
 

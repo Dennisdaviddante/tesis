@@ -183,7 +183,11 @@ const suicideAssessmentSchema = Schema({
         type: Number,
         min: 0,
         max: 2
-    }
+    },
+    finalRemarks: {
+        type: String,
+        default: ''
+      }
 });
 
 // Método para validar si debe mostrar preguntas adicionales de ideación

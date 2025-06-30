@@ -319,11 +319,48 @@ const getAdmin = async(req = request, res = response) => {
         });
     }
 };
+const uploadImages = async (req = request, res = response) => {
+    const userId = req.params.id;
+
+    try {
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ msg: 'Usuario no encontrado' });
+        }
+
+        // Solo ADMIN o PSYCHOLOGIST pueden actualizar sus imágenes
+        if (!['ADMIN', 'PSYCHOLOGIST'].includes(user.role)) {
+            return res.status(403).json({ msg: 'Este usuario no puede tener imágenes personalizadas' });
+        }
+
+        if (req.files?.profileImage) {
+            user.img = `/uploads/users/${req.files.profileImage[0].filename}`;
+        }
+
+        if (req.files?.coverImage) {
+            user.coverImage = `/uploads/users/${req.files.coverImage[0].filename}`;
+        }
+
+        await user.save();
+
+        res.json({
+            msg: 'Imágenes actualizadas correctamente',
+            user
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            msg: 'Error al subir imágenes'
+        });
+    }
+};
 
 module.exports={
     userget,
     userpost,
     userput,
     userdelete,
-    getAdmin
+    getAdmin,
+    uploadImages
 }

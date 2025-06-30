@@ -14,6 +14,8 @@ router.post('/login',[
     check('password', 'the password is not valid').not().isEmpty(),
     validateFields
 ] ,login)
-
+router.get('/me', validateJWT, async (req, res) => {
+    res.json({ user: req.user });
+  });
 module.exports = router;
  

@@ -12,7 +12,8 @@ const {
     addClinicalNote,
     updateClinicalNote,
     deleteClinicalNote,
-    getStudentById
+    getStudentById,
+    getStudentsWithAssessment
 } = require('../controllers/student.controller');
 
 const router = Router();
@@ -22,7 +23,7 @@ router.use(validateJWT);
 
 // Obtener estudiantes
 router.get('/', getStudents);
-
+router.get('/by-psychologist/:id', validateJWT, getStudentsWithAssessment);
 // Obtener estudiante por ID
 router.get('/:id', [
     validateJWT,

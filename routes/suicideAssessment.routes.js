@@ -7,7 +7,8 @@ const {
     createAssessment,
     getAssessments,
     getAssessmentById,
-    getStatistics
+    getStatistics,
+    updateFinalRemarks
 } = require('../controllers/suicideAssessment.controller');
 
 const router = Router();
@@ -15,7 +16,12 @@ const router = Router();
 // Todas las rutas necesitan token y ser psicólogo
 router.use(validateJWT);
 router.use(isPsychologist);
-
+// Actualizar observaciones generales después de guardar la evaluación
+router.put('/:id/remarks', [
+    check('id', 'El ID no es válido').isMongoId(),
+    check('finalRemarks', 'Las observaciones no pueden estar vacías').not().isEmpty(),
+    validateFields
+], updateFinalRemarks);
 // Crear una nueva evaluación
 router.post('/', [
     check('studentId', 'El ID del estudiante es obligatorio').isMongoId(),
