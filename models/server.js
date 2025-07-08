@@ -8,6 +8,7 @@ const suicideAssessmentRoute = require('../routes/suicideAssessment.routes');
 const statisticsRoute = require('../routes/statistics.route');
 const studentImportRoute = require('../routes/studentImport.route');
 const pdfreportRoute = require('../routes/pdfreport.route');
+const pdfassessement = require('../routes/pdfreportassessment.route');
 const dbConection = require('../database/config');
 const initRoles = require('../helpers/init-roles');
 const useruploadimg = require('../routes/user.route')
@@ -25,6 +26,7 @@ class Server {
       suicideAssessments: '/api/suicide-assessments',
       statistics: '/api/statistics',
       pdfreport: '/api/pdfreport',
+      pdfassessement: '/api/pdfassessement'
 
     };
     this.conectarDB();
@@ -53,6 +55,7 @@ class Server {
     this.app.use(this.paths.statistics, statisticsRoute);
     this.app.use(this.paths.studentImport, studentImportRoute);
     this.app.use(this.paths.pdfreport, pdfreportRoute); // Agrega esta línea para usar el router de pdfreport
+    this.app.use(this.paths.pdfassessement, pdfassessement); // Agrega esta línea para usar el router de pdfreport
   }
 
   listen() {

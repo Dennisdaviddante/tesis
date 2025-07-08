@@ -85,7 +85,7 @@ const suicideAssessmentSchema = Schema({
                 return this.deathWish.present === true || this.nonSpecificActiveSuicidalThoughts.present === true;
             }
         },
-        frequency: {
+        frequency: { // Esta es la frecuencia que usaremos para ajustar el riesgo
             type: Number,
             enum: [0, 1, 2, 3, 4], // 0: No sabe/No corresponde, 1: Solo una vez, 2: Unas pocas veces, 3: Muchas, 4: Todo el tiempo
             required: function() {
@@ -95,7 +95,7 @@ const suicideAssessmentSchema = Schema({
     },
     riskLevel: {
         type: String,
-        enum: ['BAJO', 'MODERADO', 'ALTO', 'MUY_ALTO'],
+        enum: ['BAJO', 'MODERADO-BAJO', 'MODERADO', 'ALTO', 'MUY_ALTO', 'EXTREMO'], // Agregamos 'EXTREMO'
         required: true
     },
     observations: String,
@@ -187,7 +187,7 @@ const suicideAssessmentSchema = Schema({
     finalRemarks: {
         type: String,
         default: ''
-      }
+    }
 });
 
 // Método para validar si debe mostrar preguntas adicionales de ideación
@@ -203,29 +203,54 @@ suicideAssessmentSchema.methods.shouldContinueAssessment = function() {
 
 // Método para calcular automáticamente el nivel de riesgo
 suicideAssessmentSchema.methods.calculateRiskLevel = function() {
-    let score = 0;
-    
-    // Ideación Suicida
-    if (this.deathWish.present) score += 1;
-    if (this.nonSpecificActiveSuicidalThoughts.present) score += 2;
-    if (this.activeSuicidalIdeationWithMethods.present) score += 3;
-    if (this.activeSuicidalIdeationWithIntent.present) score += 4;
-    if (this.activeSuicidalIdeationWithPlan.present) score += 5;
+    const ideationType = this.ideationIntensity.mostSeriousIdeationType;
+    const frequency = this.ideationIntensity.frequency;
 
-    // Comportamiento Suicida
-    if (this.actualAttempt.present) score += 10;
-    if (this.interruptedAttempt.present) score += 8;
-    if (this.abortedAttempt.present) score += 6;
-    if (this.preparatoryActs.present) score += 4;
+    if (!ideationType) {
+        return 'BAJO'; 
+    }
 
-    // Ajuste por letalidad
-    if (this.lethalityDegree >= 3) score += 5;
-    if (this.potentialLethality === 2) score += 3;
+    let baseRisk;
+    switch (ideationType) {
+        case 1:
+            baseRisk = 'BAJO';
+            break;
+        case 2:
+            baseRisk = 'MODERADO-BAJO';
+            break;
+        case 3:
+            baseRisk = 'MODERADO';
+            break;
+        case 4:
+            baseRisk = 'ALTO';
+            break;
+        case 5:
+            baseRisk = 'MUY_ALTO';
+            break;
+        default:
+            baseRisk = 'BAJO'; 
+            break;
+    }
 
-    if (score === 0) return 'BAJO';
-    if (score <= 5) return 'MODERADO';
-    if (score <= 15) return 'ALTO';
-    return 'MUY_ALTO';
+   
+    if (frequency >= 3 && frequency <= 4) { 
+        switch (baseRisk) {
+            case 'BAJO':
+                return 'MODERADO-BAJO';
+            case 'MODERADO-BAJO':
+                return 'MODERADO';
+            case 'MODERADO':
+                return 'ALTO';
+            case 'ALTO':
+                return 'MUY_ALTO';
+            case 'MUY_ALTO': 
+                return 'MUY_ALTO/EXTREMO';
+            default:
+                return baseRisk; 
+        }
+    } else { 
+        return baseRisk;
+    }
 };
 
 module.exports = model('SuicideAssessment', suicideAssessmentSchema);
